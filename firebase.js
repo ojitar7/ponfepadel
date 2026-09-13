@@ -1,11 +1,7 @@
-// Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
+import { getDatabase, ref, onValue, set } from "firebase/database";
 import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyBt5z90aTxz6H0KvFJyHJ2Nl7Q0panDDSc",
   authDomain: "ponfepadel.firebaseapp.com",
@@ -16,6 +12,9 @@ const firebaseConfig = {
   measurementId: "G-W1EVEKJ07T"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+const analytics = typeof window !== "undefined" ? getAnalytics(app) : null;
+const db = getDatabase(app);
+const dbRef = ref(db, 'ponfepadel_data');
+
+export { app, db, dbRef, onValue, set, analytics };
