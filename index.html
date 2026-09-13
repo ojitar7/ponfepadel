@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PONFEPADEL PRO - Ultimate & Banter Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s, color 0.3s; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* TEMAS VISUALES */
+        .theme-dark { background-color: #0f172a; color: #f8fafc; }
+        .theme-emerald { background-color: #064e3b; color: #ecfdf5; }
+        .theme-midnight { background-color: #1e1b4b; color: #e0e7ff; }
+        .theme-neon { background-color: #050505; color: #39ff14; }
+        .theme-clay { background-color: #451a03; color: #fef3c7; }
+        .theme-sunset { background-color: #31122b; color: #fae8ff; }
+    </style>
+</head>
+<body id="app-body" class="theme-dark h-full flex flex-col justify-between">
+
+    <!-- HEADER -->
+    <header class="bg-slate-800/90 backdrop-blur-md border-b border-slate-700 px-4 py-3 sticky top-0 z-40 shadow-md">
+        <div class="flex items-center justify-between max-w-md mx-auto">
+            <div class="flex items-center space-x-2">
+                <div class="bg-emerald-600 text-white p-2 rounded-xl shadow-lg flex items-center justify-center">
+                    <i class="fa-solid fa-fire-flame-curved text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-wider text-emerald-400">PONFEPADEL PRO</h1>
+                    <p id="sync-status" class="text-[10px] text-emerald-400 font-semibold"><i class="fa-solid fa-bolt mr-1"></i>Modo Pique Activo</p>
+                </div>
+            </div>
+            <div class="flex space-x-1">
+                <button onclick="triggerRoulette()" class="bg-amber-600 hover:bg-amber-500 text-xs text-white p-2.5 rounded-lg font-bold transition shadow" title="Ruleta del Castigo">
+                    <i class="fa-solid fa-dice text-sm"></i>
+                </button>
+                <button onclick="openCustomModal()" class="bg-slate-700 hover:bg-slate-600 text-xs text-slate-200 p-2.5 rounded-lg font-medium transition shadow" title="Personalizar Tema">
+                    <i class="fa-solid fa-palette text-sm"></i>
+                </button>
+                <button onclick="openConfigModal()" class="bg-slate-700 hover:bg-slate-600 text-xs text-slate-200 p-2.5 rounded-lg font-medium transition shadow" title="Ajustes">
+                    <i class="fa-solid fa-gear text-sm"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="flex-1 overflow-y-auto max-w-md w-full mx-auto p-4 pb-24 space-y-4">
+        
+        <!-- BANNER LIGA Y PODIO -->
+        <div id="league-banner" class="bg-slate-800/80 border border-slate-700 rounded-2xl p-4 shadow-xl space-y-2">
+            <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
+                <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Estado de la Liga</span>
+                <span id="league-status-badge" class="text-[11px] px-2.5 py-0.5 rounded-full font-bold bg-emerald-900/80 text-emerald-300 border border-emerald-700/50">Activa</span>
+            </div>
+            <div class="flex justify-between items-center text-xs">
+                <span class="text-slate-400">Jornada: <strong id="league-round-display" class="text-emerald-400">1 / 10</strong></span>
+                <button onclick="advanceRound()" class="text-[10px] bg-slate-700 hover:bg-slate-600 text-slate-200 px-2 py-1 rounded-lg font-semibold"><i class="fa-solid fa-forward mr-1"></i>Avanzar Jornada</button>
+            </div>
+            <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700/50 space-y-1 text-[11px]">
+                <p class="text-amber-300 font-semibold"><i class="fa-solid fa-trophy mr-1"></i> Premio: <span id="reward-winner-display" class="text-slate-200">-</span></p>
+                <p class="text-rose-400 font-semibold"><i class="fa-solid fa-skull mr-1"></i> Castigo: <span id="reward-loser-display" class="text-slate-200">-</span></p>
+            </div>
+        </div>
+
+        <div id="podium-section" class="bg-gradient-to-b from-amber-500/20 to-slate-800 border border-amber-500/40 rounded-2xl p-4 text-center space-y-3 hidden">
+            <h3 class="text-base font-extrabold text-amber-400 tracking-wider">🏆 ¡PODIO FINAL & CASTIGADOS! 🏆</h3>
+            <div id="podium-content" class="space-y-1 text-xs"></div>
+        </div>
+
+        <!-- 1. CLASIFICACIÓN -->
+        <section id="view-standings" class="view-section space-y-4">
+            <div class="flex space-x-2 bg-slate-800 p-1 rounded-xl border border-slate-700">
+                <button onclick="switchStandingsMode('pairs')" id="btn-mode-pairs" class="flex-1 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 text-white transition">Parejas</button>
+                <button onclick="switchStandingsMode('players')" id="btn-mode-players" class="flex-1 py-1.5 text-xs font-semibold rounded-lg text-slate-400">Individuales</button>
+            </div>
+
+            <div class="bg-slate-800/90 border border-slate-700 rounded-2xl overflow-hidden shadow-xl">
+                <div class="overflow-x-auto no-scrollbar">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-700/60 text-slate-300 uppercase tracking-wider border-b border-slate-700">
+                                <th class="py-3 px-2 text-center">#</th>
+                                <th class="py-3 px-3">Jugador / Pareja</th>
+                                <th class="py-3 px-2 text-center">PTS</th>
+                                <th class="py-3 px-2 text-center">PJ</th>
+                                <th class="py-3 px-2 text-center">G-P</th>
+                                <th class="py-3 px-2 text-center">Insignia</th>
+                            </tr>
+                        </thead>
+                        <tbody id="standings-table-body" class="divide-y divide-slate-700/50"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. PARTIDOS -->
+        <section id="view-matches" class="view-section space-y-4 hidden">
+            <div class="flex justify-between items-center bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+                <h2 class="text-sm font-bold uppercase text-emerald-400"><i class="fa-solid fa-baseball mr-2"></i>Partidos</h2>
+                <button onclick="openNewMatchModal()" id="btn-add-match" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-2 rounded-xl font-bold">
+                    <i class="fa-solid fa-plus mr-1"></i>Nuevo Partido
+                </button>
+            </div>
+            <div id="matches-list" class="space-y-3"></div>
+        </section>
+
+        <!-- 3. RETOS Y APUESTAS -->
+        <section id="view-challenges" class="view-section space-y-4 hidden">
+            <div class="flex justify-between items-center bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+                <h2 class="text-sm font-bold uppercase text-emerald-400"><i class="fa-solid fa-fire mr-2"></i>Desafíos & Apuestas</h2>
+                <button onclick="openChallengeModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-2 rounded-xl font-bold">
+                    <i class="fa-solid fa-bolt mr-1"></i>Lanzar Reto
+                </button>
+            </div>
+            <div id="challenges-list" class="space-y-3"></div>
+        </section>
+
+        <!-- 4. TORNEOS -->
+        <section id="view-tournaments" class="view-section space-y-4 hidden">
+            <div class="flex justify-between items-center bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+                <h2 class="text-sm font-bold uppercase text-emerald-400"><i class="fa-solid fa-sitemap mr-2"></i>Torneos Pro</h2>
+                <button onclick="openTournamentModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-2 rounded-xl font-bold">
+                    <i class="fa-solid fa-trophy mr-1"></i>Crear Torneo
+                </button>
+            </div>
+            <div id="tournaments-list" class="space-y-4"></div>
+        </section>
+
+        <!-- 5. PERFILES DETALLADOS & PIQUE H2H -->
+        <section id="view-players" class="view-section space-y-4 hidden">
+            <div class="flex justify-between items-center bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+                <h2 class="text-sm font-bold uppercase text-emerald-400"><i class="fa-solid fa-users mr-2"></i>Perfiles & H2H</h2>
+                <button onclick="openNewPlayerModal()" class="bg-emerald-600 text-white text-xs px-3 py-2 rounded-xl font-bold">
+                    <i class="fa-solid fa-user-plus mr-1"></i>Añadir
+                </button>
+            </div>
+
+            <!-- COMPARATIVA H2H CON MEDIDOR DE PIQUE -->
+            <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-4 space-y-3 shadow-xl">
+                <h3 class="text-xs font-bold uppercase text-slate-300"><i class="fa-solid fa-skull-crossbones text-rose-500 mr-1"></i> Medidor de Bad Blood (H2H)</h3>
+                <div class="grid grid-cols-2 gap-2">
+                    <select id="h2h-pair-a" onchange="runH2HAnalysis()" class="bg-slate-900 border border-slate-700 rounded-xl p-2 text-xs text-slate-200"></select>
+                    <select id="h2h-pair-b" onchange="runH2HAnalysis()" class="bg-slate-900 border border-slate-700 rounded-xl p-2 text-xs text-slate-200"></select>
+                </div>
+                <div id="h2h-results" class="bg-slate-900/80 p-3 rounded-xl border border-slate-700 space-y-2 text-xs"></div>
+            </div>
+
+            <div id="players-list" class="grid grid-cols-1 gap-3"></div>
+        </section>
+
+    </main>
+
+    <!-- NAVEGACIÓN INFERIOR DE 5 BOTONES -->
+    <nav class="bg-slate-800/90 backdrop-blur-md border-t border-slate-700 fixed bottom-0 left-0 right-0 z-40 max-w-md mx-auto shadow-2xl">
+        <div class="grid grid-cols-5 h-16">
+            <button onclick="switchTab('standings')" id="nav-standings" class="flex flex-col items-center justify-center text-emerald-400">
+                <i class="fa-solid fa-ranking-star text-base"></i>
+                <span class="text-[9px] font-semibold mt-1">Clasif.</span>
+            </button>
+            <button onclick="switchTab('matches')" id="nav-matches" class="flex flex-col items-center justify-center text-slate-400">
+                <i class="fa-solid fa-baseball text-base"></i>
+                <span class="text-[9px] font-semibold mt-1">Partidos</span>
+            </button>
+            <button onclick="switchTab('challenges')" id="nav-challenges" class="flex flex-col items-center justify-center text-slate-400">
+                <i class="fa-solid fa-fire text-base"></i>
+                <span class="text-[9px] font-semibold mt-1">Retos</span>
+            </button>
+            <button onclick="switchTab('tournaments')" id="nav-tournaments" class="flex flex-col items-center justify-center text-slate-400">
+                <i class="fa-solid fa-sitemap text-base"></i>
+                <span class="text-[9px] font-semibold mt-1">Torneos</span>
+            </button>
+            <button onclick="switchTab('players')" id="nav-players" class="flex flex-col items-center justify-center text-slate-400">
+                <i class="fa-solid fa-user-group text-base"></i>
+                <span class="text-[9px] font-semibold mt-1">Perfiles</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- MODAL PERSONALIZACIÓN Y TEMA (6 COLORES) -->
+    <div id="modal-custom" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 w-full max-w-sm rounded-2xl p-5 space-y-4 text-xs">
+            <h3 class="text-sm font-bold text-emerald-400"><i class="fa-solid fa-palette mr-2"></i>Personalización Visual</h3>
+            <div>
+                <label class="block text-slate-300 font-medium mb-1">Selecciona Tema de Colores</label>
+                <select id="cfg-theme" onchange="changeTheme(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-slate-100 font-semibold">
+                    <option value="theme-dark">🌌 Oscuro Pro (Slate/Graphite)</option>
+                    <option value="theme-emerald">🎾 Verde Pista WPT (Emerald)</option>
+                    <option value="theme-midnight">🌌 Noche Nocturna (Indigo)</option>
+                    <option value="theme-neon">⚡ Neon Cyberpunk (Lime/Black)</option>
+                    <option value="theme-clay">🧱 Tierra Batida (Clay/Amber)</option>
+                    <option value="theme-sunset">🌇 Sunset Gold (Magenta/Purple)</option>
+                </select>
+            </div>
+            <div class="flex space-x-2 pt-2">
+                <button onclick="closeCustomModal()" class="w-full bg-emerald-600 text-white py-2.5 rounded-xl font-bold">Aplicar Tema</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL EDITAR PERFIL DE JUGADOR COMPLETO -->
+    <div id="modal-edit-player" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 w-full max-w-sm rounded-2xl p-5 space-y-4 text-xs">
+            <h3 class="text-sm font-bold text-emerald-400"><i class="fa-solid fa-user-pen mr-2"></i>Personalizar Perfil</h3>
+            <form onsubmit="savePlayerProfile(event)" class="space-y-3">
+                <input type="hidden" id="edit-player-id">
+                <div>
+                    <label class="block text-slate-300 font-medium mb-1">Nombre / Alias</label>
+                    <input type="text" id="edit-player-name" required class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-slate-100">
+                </div>
+                <div>
+                    <label class="block text-slate-300 font-medium mb-1">Foto Avatar (Emoji o URL Imagen)</label>
+                    <input type="text" id="edit-player-avatar" placeholder="😎 o https://..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-slate-100">
+                </div>
+                <div>
+                    <label class="block text-slate-300 font-medium mb-1">Pala Preferida</label>
+                    <input type="text" id="edit-player-racket" placeholder="Ej. Bullpadel Hack 03" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-slate-100">
+                </div>
+                <div>
+                    <label class="block text-slate-300 font-medium mb-1">Premio Favorito</label>
+                    <input type="text" id="edit-player-reward" placeholder="Ej. Jarra de cerveza helada" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-slate-100">
+                </div>
+                <div>
+                    <label class="block text-slate-300 font-medium mb-1">Frase Mítica / Bio</label>
+                    <textarea id="edit-player-bio" placeholder="Frase para intimidar a los rivales..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-slate-100 h-16"></textarea>
+                </div>
+                <div class="flex space-x-2 pt-2">
+                    <button type="button" onclick="closeEditPlayerModal()" class="flex-1 bg-slate-700 text-slate-300 py-2.5 rounded-xl font-bold">Cancelar</button>
+                    <button type="submit" class="flex-1 bg-emerald-600 text-white py-2.5 rounded-xl font-bold">Guardar Perfil</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- RULETA DEL CASTIGO (MODAL DIVERTIDO) -->
+    <div id="modal-roulette" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-amber-500/50 w-full max-w-sm rounded-2xl p-5 space-y-4 text-xs text-center">
+            <h3 class="text-base font-extrabold text-amber-400"><i class="fa-solid fa-dice mr-2"></i>RULETA DE LA VENGANZA</h3>
+            <p class="text-slate-300">¿No os ponéis de acuerdo con la apuesta? ¡Gira la suerte!</p>
+            <div id="roulette-box" class="bg-slate-900 p-4 rounded-xl border border-slate-700 text-lg font-bold text-emerald-400 min-h-[60px] flex items-center justify-center">
+                Pulsa girar...
+            </div>
+            <div class="flex space-x-2 pt-2">
+                <button onclick="spinRoulette()" class="flex-1 bg-amber-600 hover:bg-amber-500 text-white py-2.5 rounded-xl font-bold">🎰 ¡GIRAR!</button>
+                <button onclick="closeRouletteModal()" class="flex-1 bg-slate-700 text-slate-300 py-2.5 rounded-xl font-bold">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALES ADICIONALES (LANZAR RETO, AJUSTES, PARTIDO, TORNEO, CREAR JUGADOR) -->
+    <div id="modal-challenge" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 w-full max-w-sm rounded-2xl p-5 space-y-4 text-xs">
+            <h3 class="text-sm font-bold text-emerald-400"><i class="fa-solid fa-fire mr-2"></i>Lanzar Desafío Directo</h3>
+            <form onsubmit="saveChallenge(event)" class="space-y-3">
+                <div>
+                    <label class="block text-slate-300 font-medium mb-1">Pareja Desafiante</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <select id="ch-p1-a" required class="bg-slate-900 border border-slate-700 rounded-xl p-2 text-slate-200"></select>
+                        <select id="ch-p2-a" required class="bg-slate-900 border border-slate-700 rounded-xl p-2 text-slate-200"></select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-slate-300 font-medium mb-1">Pareja Retada</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <select id="ch-p1-b" required class="bg-slate-900 border border-slate-700 rounded-xl p-2 text-slate-200"></select>
+                        <select id="ch-p2-b" required class="bg-slate-900 border border-slate-700 rounded-xl p-2 text-slate-200"></select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-slate-300 font-medium mb-1">Apuesta / Recompensa</label>
+                    <input type="text" id="ch-stake" placeholder="Ej. Cañas pagadas por el perdedor" required class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-slate-100">
+                </div>
+                <div class="flex space-x-2 pt-2">
+                    <button type="button" onclick="closeChallengeModal()" class="flex-1 bg-slate-700 text-slate-300 py-2.5 rounded-xl font-bold">Cancelar</button>
+                    <button type="submit" class="flex-1 bg-emerald-600 text-white py-2.5 rounded-xl font-bold">Enviar Reto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-config" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 w-full max-w-sm rounded-2xl p-5 space-y-4 text-xs">
+            <h3 class="text-sm font-bold text-emerald-400"><i class="fa-solid fa-gear mr-2"></i>Ajustes de la Liga</h3>
+            <div>
+                <label class="block text-slate-300 font-medium mb-1">Máximo de Jornadas</label>
+                <input type="number" id="cfg-max-rounds" value="10" min="1" max="50" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-slate-100">
+            </div>
+            <div>
+                <label class="block text-slate-300 font-medium mb-1">Recompensa Campeón 🏆</label>
+                <input type="text" id="cfg-reward-winner" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-slate-100">
+            </div>
+            <div>
+                <label class="block text-slate-300 font-medium mb-1">Castigo Último Clasificado 💀</label>
+                <input type="text" id="cfg-reward-loser" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-slate-100">
+            </div>
+            <div class="flex space-x-2 pt-2">
+                <button onclick="closeConfigModal()" class="flex-1 bg-slate-700 text-slate-300 py-2.5 rounded-xl font-bold">Cancelar</button>
+                <button onclick="saveConfig()" class="flex-1 bg-emerald-600 text-white py-2.5 rounded-xl font-bold">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-match" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 w-full max-w-sm rounded-2xl p-5 space-y-4 text-xs">
+            <h3 class="text-sm font-bold text-emerald-400"><i class="fa-solid fa-plus mr-2"></i>Registrar Partido</h3>
+            <form onsubmit="saveMatch(event)" class="space-y-3">
+                <div>
+                    <label class="block text-slate-300 font-medium mb-1">Pareja Local</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <select id="match-p1-a" required class="bg-slate-900 border border-slate-700 rounded-xl p-2 text-slate-200"></select>
+                        <select id="match-p2-a" required class="bg-slate-900 border border-slate-700 rounded-xl p-2 text-slate-200"></select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-slate-300 font-medium mb-1">Pareja Visitante</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <select id="match-p1-b" required class="bg-slate-900 border border-slate-700 rounded-xl p-2 text-slate-200"></select>
+                        <select id="match-p2-b" required class="bg-slate-900 border border-slate-700 rounded-xl p-2 text-slate-200"></select>
+                    </div>
+                </div>
+                <div class="space-y-2 border-t border-slate-700 pt-3">
+                    <label class="block text-slate-300 font-semibold">Resultado por Sets</label>
+                    <div class="flex justify-between items-center bg-slate-900/60 p-2 rounded-xl">
+                        <span>Set 1</span>
+                        <div class="flex space-x-2">
+                            <input type="number" id="set1-a" value="6" min="0" max="7" class="w-12 text-center bg-slate-900 border border-slate-700 rounded-lg p-1 font-bold">
+                            <span>-</span>
+                            <input type="number" id="set1-b" value="4" min="0" max="7" class="w-12 text-center bg-slate-900 border border-slate-700 rounded-lg p-1 font-bold">
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center bg-slate-900/60 p-2 rounded-xl">
+                        <span>Set 2</span>
+                        <div class="flex space-x-2">
+                            <input type="number" id="set2-a" value="6" min="0" max="7" class="w-12 text-center bg-slate-900 border border-slate-700 rounded-lg p-1 font-bold">
+                            <span>-</span>
+                            <input type="number" id="set2-b" value="3" min="0" max="7" class="w-12 text-center bg-slate-900 border border-slate-700 rounded-lg p-1 font-bold">
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center bg-slate-900/60 p-2 rounded-xl">
+                        <span>Set 3 (Opcional)</span>
+                        <div class="flex space-x-2">
+                            <input type="number" id="set3-a" value="0" min="0" max="15" class="w-12 text-center bg-slate-900 border border-slate-700 rounded-lg p-1 font-bold">
+                            <span>-</span>
+                            <input type="number" id="set3-b" value="0" min="0" max="15" class="w-12 text-center bg-slate-900 border border-slate-700 rounded-lg p-1 font-bold">
+                        </div>
+                    </div>
+                </div>
+                <div class="flex space-x-2 pt-2">
+                    <button type="button" onclick="closeNewMatchModal()" class="flex-1 bg-slate-700 text-slate-300 py-2.5 rounded-xl font-bold">Cancelar</button>
+                    <button type="submit" class="flex-1 bg-emerald-600 text-white py-2.5 rounded-xl font-bold">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-tournament" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 w-full max-w-sm rounded-2xl p-5 space-y-4 text-xs">
+            <h3 class="text-sm font-bold text-emerald-400"><i class="fa-solid fa-trophy mr-2"></i>Nuevo Torneo</h3>
+            <form onsubmit="saveTournament(event)" class="space-y-3">
+                <div>
+                    <label class="block text-slate-300 font-medium mb-1">Nombre del Torneo</label>
+                    <input type="text" id="tour-name" required placeholder="Ej. Torneo Exprés" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-slate-100">
+                </div>
+                <div>
+                    <label class="block text-slate-300 font-medium mb-1">Formato</label>
+                    <select id="tour-format" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-slate-100">
+                        <option value="cuadrangular">Cuadrangular (2 Semis + Final)</option>
+                        <option value="eliminatoria">Eliminatoria Directa (Cuadro de 8)</option>
+                        <option value="pozo">Americano / Pozo Individual</option>
+                    </select>
+                </div>
+                <div class="flex space-x-2 pt-2">
+                    <button type="button" onclick="closeTournamentModal()" class="flex-1 bg-slate-700 text-slate-300 py-2.5 rounded-xl font-bold">Cancelar</button>
+                    <button type="submit" class="flex-1 bg-emerald-600 text-white py-2.5 rounded-xl font-bold">Crear Torneo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-player" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 w-full max-w-sm rounded-2xl p-5 space-y-4 text-xs">
+            <h3 class="text-sm font-bold text-emerald-400"><i class="fa-solid fa-user-plus mr-2"></i>Añadir Jugador</h3>
+            <form onsubmit="savePlayer(event)" class="space-y-3">
+                <div>
+                    <label class="block text-slate-300 font-medium mb-1">Nombre / Alias</label>
+                    <input type="text" id="player-name" required placeholder="Nombre del jugador" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-slate-100">
+                </div>
+                <div class="flex space-x-2 pt-2">
+                    <button type="button" onclick="closeNewPlayerModal()" class="flex-1 bg-slate-700 text-slate-300 py-2.5 rounded-xl font-bold">Cancelar</button>
+                    <button type="submit" class="flex-1 bg-emerald-600 text-white py-2.5 rounded-xl font-bold">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- FIREBASE REALTIME DATABASE INTERACTIVE LOGIC -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDummyKey_ReplaceWithYourFirebaseKey",
+            authDomain: "ponfepadel-app.firebaseapp.com",
+            databaseURL: "https://ponfepadel-app-default-rtdb.firebaseio.com",
+            projectId: "ponfepadel-app",
+            storageBucket: "ponfepadel-app.appspot.com",
+            messagingSenderId: "1234567890",
+            appId: "1:1234567890:web:abc123def456"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const dbRef = ref(db, 'ponfepadel_data');
+
+        window.appData = {
+            maxJornadas: 10,
+            jornadaActual: 1,
+            estadoLiga: 'Activa',
+            theme: 'theme-dark',
+            recompensaGanador: '🍺 Cervezas gratis pagadas por todos',
+            castigoUltimo: '🖐️ Pasillo de collejas + Pagar reserva',
+            players: [
+                { id: 'p1', name: 'Carlos', avatar: '👑', racket: 'Babolat Technical Viper', reward: 'Cañas Heladas', bio: 'Invicto en los tiebreaks.' },
+                { id: 'p2', name: 'Alex', avatar: '⚡', racket: 'Head Speed Pro', reward: 'Pizza 4 Quesos', bio: 'El rematador silencioso.' },
+                { id: 'p3', name: 'David', avatar: '🔥', racket: 'Bullpadel Vertex', reward: 'Bote Pelotas', bio: 'Especialista en globos al cristal.' },
+                { id: 'p4', name: 'Mario', avatar: '💀', racket: 'Nox ML10 Pro', reward: 'Café solo', bio: 'Acepto cualquier desafío.' }
+            ],
+            matches: [],
+            challenges: [],
+            tournaments: [],
+            standingsMode: 'pairs'
+        };
+
+        onValue(dbRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                window.appData = data;
+                renderAllViews();
+            } else {
+                window.syncDataToFirebase();
+            }
+        });
+
+        window.syncDataToFirebase = function() {
+            set(dbRef, window.appData);
+        };
+    </script>
+
+    <!-- CORE & EXTENDED INTERACTION SCRIPT -->
+    <script>
+        function switchTab(tabId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            document.getElementById('view-' + tabId).classList.remove('hidden');
+            ['standings', 'matches', 'challenges', 'tournaments', 'players'].forEach(t => {
+                document.getElementById('nav-' + t).className = "flex flex-col items-center justify-center text-slate-400";
+            });
+            document.getElementById('nav-' + tabId).className = "flex flex-col items-center justify-center text-emerald-400";
+            renderAllViews();
+        }
+
+        function changeTheme(themeName) {
+            appData.theme = themeName;
+            document.getElementById('app-body').className = `${themeName} h-full flex flex-col justify-between`;
+            syncDataToFirebase();
+        }
+
+        function renderAllViews() {
+            if(appData.theme) document.getElementById('app-body').className = `${appData.theme} h-full flex flex-col justify-between`;
+            renderBanner();
+            renderStandings();
+            renderMatches();
+            renderChallenges();
+            renderTournaments();
+            renderPlayersView();
+        }
+
+        function renderBanner() {
+            document.getElementById('league-round-display').innerText = `${appData.jornadaActual} / ${appData.maxJornadas}`;
+            document.getElementById('reward-winner-display').innerText = appData.recompensaGanador || '-';
+            document.getElementById('reward-loser-display').innerText = appData.castigoUltimo || '-';
+
+            const badge = document.getElementById('league-status-badge');
+            const btnAddMatch = document.getElementById('btn-add-match');
+            const podiumSection = document.getElementById('podium-section');
+
+            if (appData.estadoLiga === 'Finalizada') {
+                badge.className = "text-[11px] px-2.5 py-0.5 rounded-full font-bold bg-rose-900/80 text-rose-300 border border-rose-700/50";
+                badge.innerText = "Finalizada";
+                if(btnAddMatch) btnAddMatch.classList.add('hidden');
+                renderPodium();
+                podiumSection.classList.remove('hidden');
+            } else {
+                badge.className = "text-[11px] px-2.5 py-0.5 rounded-full font-bold bg-emerald-900/80 text-emerald-300 border border-emerald-700/50";
+                badge.innerText = "Activa";
+                if(btnAddMatch) btnAddMatch.classList.remove('hidden');
+                podiumSection.classList.add('hidden');
+            }
+        }
+
+        function advanceRound() {
+            if (appData.jornadaActual >= appData.maxJornadas) {
+                appData.estadoLiga = 'Finalizada';
+                alert('¡Límite de jornadas alcanzado! Liga completada.');
+            } else {
+                appData.jornadaActual++;
+            }
+            syncDataToFirebase();
+        }
+
+        function renderPodium() {
+            const podiumContent = document.getElementById('podium-content');
+            const sortedPairs = getSortedPairs();
+            if(sortedPairs.length === 0) return;
+
+            const winner = sortedPairs[0];
+            const loser = sortedPairs[sortedPairs.length - 1];
+
+            podiumContent.innerHTML = `
+                <div class="bg-amber-500/10 p-2 rounded-xl border border-amber-500/30 text-amber-300">
+                    🥇 <strong>REY DE LA PISTA:</strong> ${getPlayerName(winner.players[0])} & ${getPlayerName(winner.players[1])} <br>
+                    🎁 <em>Premio: ${appData.recompensaGanador}</em>
+                </div>
+                <div class="bg-rose-500/10 p-2 rounded-xl border border-rose-500/30 text-rose-300 mt-2">
+                    💀 <strong>CANDIDATO AL CASTIGO:</strong> ${getPlayerName(loser.players[0])} & ${getPlayerName(loser.players[1])} <br>
+                    🖐️ <em>Castigo: ${appData.castigoUltimo}</em>
+                </div>
+            `;
+        }
+
+        function getSortedPairs() {
+            const pairStats = {};
+            (appData.matches || []).forEach(m => {
+                const keyA = [...m.pairA].sort().join('-');
+                const keyB = [...m.pairB].sort().join('-');
+                if(!pairStats[keyA]) pairStats[keyA] = { players: m.pairA, pts: 0, pj: 0, pg: 0, pp: 0, setsW: 0, setsL: 0 };
+                if(!pairStats[keyB]) pairStats[keyB] = { players: m.pairB, pts: 0, pj: 0, pg: 0, pp: 0, setsW: 0, setsL: 0 };
+
+                pairStats[keyA].pj++; pairStats[keyB].pj++;
+                let sA = 0, sB = 0;
+                m.sets.forEach(s => { if(s[0]>s[1]) sA++; else if(s[1]>s[0]) sB++; });
+
+                pairStats[keyA].setsW += sA; pairStats[keyA].setsL += sB;
+                pairStats[keyB].setsW += sB; pairStats[keyB].setsL += sA;
+
+                if(m.winner === 'A') { pairStats[keyA].pg++; pairStats[keyA].pts += 3; pairStats[keyB].pp++; }
+                else { pairStats[keyB].pg++; pairStats[keyB].pts += 3; pairStats[keyA].pp++; }
+            });
+            return Object.values(pairStats).sort((x,y) => y.pts - x.pts || (y.setsW - y.setsL) - (x.setsW - x.setsL));
+        }
+
+        function switchStandingsMode(mode) {
+            appData.standingsMode = mode;
+            document.getElementById('btn-mode-pairs').className = mode === 'pairs' ? "flex-1 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 text-white transition" : "flex-1 py-1.5 text-xs font-semibold rounded-lg text-slate-400";
+            document.getElementById('btn-mode-players').className = mode === 'players' ? "flex-1 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 text-white transition" : "flex-1 py-1.5 text-xs font-semibold rounded-lg text-slate-400";
+            renderStandings();
+        }
+
+        function renderStandings() {
+            const tbody = document.getElementById('standings-table-body');
+            tbody.innerHTML = '';
+
+            if (appData.standingsMode === 'pairs') {
+                const pairs = getSortedPairs();
+                pairs.forEach((p, idx) => {
+                    const badge = idx === 0 ? '👑 Campeón' : (idx === pairs.length-1 ? '💀 Cuchara de Palo' : '⚔️ En lucha');
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-700/30 transition";
+                    tr.innerHTML = `
+                        <td class="py-3 px-2 text-center font-bold text-slate-400">${idx+1}</td>
+                        <td class="py-3 px-3 font-semibold text-slate-200">${getPlayerName(p.players[0])} / ${getPlayerName(p.players[1])}</td>
+                        <td class="py-3 px-2 text-center font-extrabold text-emerald-400">${p.pts}</td>
+                        <td class="py-3 px-2 text-center">${p.pj}</td>
+                        <td class="py-3 px-2 text-center">${p.pg}-${p.pp}</td>
+                        <td class="py-3 px-2 text-center font-bold text-[10px] text-amber-400">${badge}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } else {
+                const stats = calculateIndividualStats();
+                const sortedPlayers = Object.values(stats).sort((a,b) => b.winrate - a.winrate);
+                sortedPlayers.forEach((p, idx) => {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-700/30 transition";
+                    const pObj = getPlayerObj(p.id);
+                    const avatar = pObj.avatar || '🎾';
+                    tr.innerHTML = `
+                        <td class="py-3 px-2 text-center font-bold text-slate-400">${idx+1}</td>
+                        <td class="py-3 px-3 font-semibold text-slate-200">${avatar} ${p.name}</td>
+                        <td class="py-3 px-2 text-center font-extrabold text-emerald-400">${p.winrate}%</td>
+                        <td class="py-3 px-2 text-center">${p.pj}</td>
+                        <td class="py-3 px-2 text-center">${p.pg}-${p.pp}</td>
+                        <td class="py-3 px-2 text-center">${p.streak > 0 ? '+'+p.streak+'🔥' : p.streak+'❄️'}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+        }
+
+        // EDICIÓN DE PERFIL COMPLETO
+        function openEditPlayerModal(id) {
+            const p = getPlayerObj(id);
+            if(!p) return;
+            document.getElementById('edit-player-id').value = p.id;
+            document.getElementById('edit-player-name').value = p.name;
+            document.getElementById('edit-player-avatar').value = p.avatar || '';
+            document.getElementById('edit-player-racket').value = p.racket || '';
+            document.getElementById('edit-player-reward').value = p.reward || '';
+            document.getElementById('edit-player-bio').value = p.bio || '';
+            document.getElementById('modal-edit-player').classList.remove('hidden');
+        }
+        function closeEditPlayerModal() { document.getElementById('modal-edit-player').classList.add('hidden'); }
+
+        function savePlayerProfile(e) {
+            e.preventDefault();
+            const id = document.getElementById('edit-player-id').value;
+            const p = getPlayerObj(id);
+            if(p) {
+                p.name = document.getElementById('edit-player-name').value;
+                p.avatar = document.getElementById('edit-player-avatar').value;
+                p.racket = document.getElementById('edit-player-racket').value;
+                p.reward = document.getElementById('edit-player-reward').value;
+                p.bio = document.getElementById('edit-player-bio').value;
+                syncDataToFirebase();
+            }
+            closeEditPlayerModal();
+        }
+
+        function getPlayerObj(id) {
+            return (appData.players || []).find(x => x.id === id);
+        }
+
+        function renderPlayersView() {
+            const list = document.getElementById('players-list');
+            const sel1 = document.getElementById('h2h-pair-a');
+            const sel2 = document.getElementById('h2h-pair-b');
+            list.innerHTML = ''; sel1.innerHTML = ''; sel2.innerHTML = '';
+
+            const stats = calculateIndividualStats();
+
+            const pairs = [];
+            for(let i=0; i<appData.players.length; i++) {
+                for(let j=i+1; j<appData.players.length; j++) {
+                    pairs.push([appData.players[i].id, appData.players[j].id]);
+                }
+            }
+
+            pairs.forEach(p => {
+                const label = `${getPlayerName(p[0])} & ${getPlayerName(p[1])}`;
+                sel1.add(new Option(label, p.join(',')));
+                sel2.add(new Option(label, p.join(',')));
+            });
+            if(pairs.length > 1) sel2.selectedIndex = 1;
+
+            appData.players.forEach(p => {
+                const s = stats[p.id] || { pj: 0, pg: 0, pp: 0, winrate: 0, streak: 0 };
+                const avatarDisplay = (p.avatar && p.avatar.startsWith('http')) 
+                    ? `<img src="${p.avatar}" class="w-8 h-8 rounded-full object-cover">` 
+                    : `<span class="text-xl">${p.avatar || '🎾'}</span>`;
+
+                const card = document.createElement('div');
+                card.className = "bg-slate-800 border border-slate-700 rounded-2xl p-4 text-xs space-y-2 shadow-md relative";
+                card.innerHTML = `
+                    <button onclick="openEditPlayerModal('${p.id}')" class="absolute top-3 right-3 text-slate-400 hover:text-emerald-400">
+                        <i class="fa-solid fa-pen-to-square text-sm"></i>
+                    </button>
+                    <div class="flex items-center space-x-3 border-b border-slate-700/60 pb-2">
+                        ${avatarDisplay}
+                        <div>
+                            <h4 class="font-bold text-slate-100 text-sm flex items-center gap-1">${p.name}</h4>
+                            <p class="text-[10px] text-slate-400 font-italic">"${p.bio || 'Sin frase mítica...'}"</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-300">
+                        <div>🎾 <strong>Pala:</strong> ${p.racket || 'No especificada'}</div>
+                        <div>🎁 <strong>Deseo:</strong> ${p.reward || 'Cerveza'}</div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-1 text-center text-[10px] text-slate-300 bg-slate-900/60 p-2 rounded-xl">
+                        <div>PJ: <strong>${s.pj}</strong></div>
+                        <div>Winrate: <strong class="text-emerald-400">${s.winrate}%</strong></div>
+                        <div>Racha: <strong>${s.streak > 0 ? '+'+s.streak : s.streak}🔥</strong></div>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+
+            runH2HAnalysis();
+        }
+
+        // H2H Y MEDIDOR DE PIQUE AVANZADO
+        function runH2HAnalysis() {
+            const pairAKey = document.getElementById('h2h-pair-a').value;
+            const pairBKey = document.getElementById('h2h-pair-b').value;
+            const resultsBox = document.getElementById('h2h-results');
+
+            if (!pairAKey || !pairBKey || pairAKey === pairBKey) {
+                resultsBox.innerHTML = '<p class="text-center text-slate-400">Selecciona dos parejas distintas.</p>';
+                return;
+            }
+
+            const pA = pairAKey.split(',');
+            const pB = pairBKey.split(',');
+
+            let winsA = 0, winsB = 0, setsA = 0, setsB = 0, gamesA = 0, gamesB = 0;
+
+            (appData.matches || []).forEach(m => {
+                const matchA = (m.pairA.includes(pA[0]) && m.pairA.includes(pA[1])) && (m.pairB.includes(pB[0]) && m.pairB.includes(pB[1]));
+                const matchB = (m.pairB.includes(pA[0]) && m.pairB.includes(pA[1])) && (m.pairA.includes(pB[0]) && m.pairA.includes(pB[1]));
+
+                if (matchA || matchB) {
+                    const isDirectA = matchA ? m.winner === 'A' : m.winner === 'B';
+                    if (isDirectA) winsA++; else winsB++;
+
+                    m.sets.forEach(s => {
+                        const gA = matchA ? s[0] : s[1];
+                        const gB = matchA ? s[1] : s[0];
+                        gamesA += gA; gamesB += gB;
+                        if(gA > gB) setsA++; else if(gB > gA) setsB++;
+                    });
+                }
+            });
+
+            const totalMatches = winsA + winsB;
+            let tensionText = "Sin enfrentamientos previos";
+            let tensionColor = "text-slate-400";
+
+            if (totalMatches > 0) {
+                const diff = Math.abs(winsA - winsB);
+                if (diff === 0) { tensionText = "🔥 MÁXIMA TENSIÓN: Máxima Rivalidad e Igualdad"; tensionColor = "text-rose-400 font-extrabold"; }
+                else if (diff <= 2) { tensionText = "⚔️ PIQUE CALIENTE: Sed de venganza"; tensionColor = "text-amber-400 font-bold"; }
+                else { tensionText = "👑 DOMINIO ABSOLUTO: Padre e Hijo padeleros"; tensionColor = "text-emerald-400 font-bold"; }
+            }
+
+            resultsBox.innerHTML = `
+                <div class="space-y-1.5 text-xs text-center">
+                    <p class="${tensionColor} text-[11px] uppercase tracking-wider">${tensionText}</p>
+                    <div class="flex justify-between font-bold border-b border-slate-700 pb-1 pt-1">
+                        <span class="text-emerald-400">${winsA} Victorias</span>
+                        <span class="text-slate-400">VS</span>
+                        <span class="text-amber-400">${winsB} Victorias</span>
+                    </div>
+                    <p class="text-slate-300"><strong>Sets:</strong> ${setsA} - ${setsB} | <strong>Juegos:</strong> ${gamesA} - ${gamesB}</p>
+                </div>
+            `;
+        }
+
+        // RULETA DEL CASTIGO
+        function triggerRoulette() {
+            document.getElementById('modal-roulette').classList.remove('hidden');
+        }
+        function closeRouletteModal() {
+            document.getElementById('modal-roulette').classList.add('hidden');
+        }
+        function spinRoulette() {
+            const punishmentOptions = [
+                "🍺 Pagar la ronda entera de cañas",
+                "🖐️ Pasillo de collejas de todo el grupo",
+                "💶 Pagar la pista de la próxima jornada",
+                "🧼 Limpiar las palas y recoger todas las bolas",
+                "🎽 Jugar la próxima jornada con camiseta graciosa",
+                "☕ Traer un termo de café recién hecho al próximo partido",
+                "👑 Traer corona puesta durante todo el tercer tiempo"
+            ];
+
+            const box = document.getElementById('roulette-box');
+            let count = 0;
+            const interval = setInterval(() => {
+                box.innerText = punishmentOptions[Math.floor(Math.random() * punishmentOptions.length)];
+                count++;
+                if(count > 15) {
+                    clearInterval(interval);
+                    box.className = "bg-amber-500/20 p-4 rounded-xl border border-amber-500 text-base font-extrabold text-amber-300 animate-bounce flex items-center justify-center";
+                }
+            }, 100);
+        }
+
+        // RESTO DE MÉTODOS Y AUXILIARES
+        function calculateIndividualStats() {
+            const stats = {};
+            appData.players.forEach(p => {
+                stats[p.id] = { id: p.id, name: p.name, pj: 0, pg: 0, pp: 0, winrate: 0, streak: 0 };
+            });
+
+            (appData.matches || []).forEach(m => {
+                const teamA = m.pairA;
+                const teamB = m.pairB;
+                const winnerTeam = m.winner === 'A' ? teamA : teamB;
+                const loserTeam = m.winner === 'A' ? teamB : teamA;
+
+                [...teamA, ...teamB].forEach(pid => { if(stats[pid]) stats[pid].pj++; });
+
+                winnerTeam.forEach(pid => {
+                    if(stats[pid]) {
+                        stats[pid].pg++;
+                        stats[pid].streak = stats[pid].streak >= 0 ? stats[pid].streak + 1 : 1;
+                    }
+                });
+
+                loserTeam.forEach(pid => {
+                    if(stats[pid]) {
+                        stats[pid].pp++;
+                        stats[pid].streak = stats[pid].streak <= 0 ? stats[pid].streak - 1 : -1;
+                    }
+                });
+            });
+
+            Object.values(stats).forEach(s => {
+                s.winrate = s.pj > 0 ? ((s.pg / s.pj) * 100).toFixed(0) : 0;
+            });
+
+            return stats;
+        }
+
+        function getPlayerName(id) {
+            const p = getPlayerObj(id);
+            return p ? p.name : 'Desconocido';
+        }
+
+        function renderMatches() {
+            const container = document.getElementById('matches-list');
+            container.innerHTML = '';
+            [...(appData.matches || [])].reverse().forEach(m => {
+                const card = document.createElement('div');
+                card.className = "bg-slate-800 border border-slate-700 rounded-2xl p-3 shadow-xl text-xs space-y-2";
+                const setsStr = m.sets.map(s => `${s[0]}-${s[1]}`).join(', ');
+                card.innerHTML = `
+                    <div class="flex justify-between text-[10px] text-slate-400 border-b border-slate-700/60 pb-1">
+                        <span>Jornada ${m.jornada || 1} - ${m.date}</span>
+                    </div>
+                    <div class="flex justify-between font-bold">
+                        <span class="${m.winner === 'A' ? 'text-emerald-400' : 'text-slate-300'}">${getPlayerName(m.pairA[0])} / ${getPlayerName(m.pairA[1])}</span>
+                        <span class="text-slate-400">vs</span>
+                        <span class="${m.winner === 'B' ? 'text-emerald-400' : 'text-slate-300'}">${getPlayerName(m.pairB[0])} / ${getPlayerName(m.pairB[1])}</span>
+                    </div>
+                    <div class="bg-slate-900/80 p-1.5 rounded-xl text-center text-emerald-300 font-mono font-bold">${setsStr}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderChallenges() {
+            const container = document.getElementById('challenges-list');
+            container.innerHTML = '';
+            (appData.challenges || []).reverse().forEach(c => {
+                const card = document.createElement('div');
+                card.className = "bg-slate-800/80 border border-slate-700 rounded-2xl p-4 shadow-xl space-y-2 text-xs";
+                card.innerHTML = `
+                    <div class="flex justify-between items-center border-b border-slate-700/60 pb-1.5">
+                        <span class="text-amber-400 font-bold"><i class="fa-solid fa-fire mr-1"></i>DESAFÍO DIRECTO</span>
+                        <span class="bg-amber-900/60 text-amber-300 px-2 py-0.5 rounded-full text-[10px] font-bold">${c.status}</span>
+                    </div>
+                    <div class="flex justify-between items-center font-bold">
+                        <span class="text-slate-200">${getPlayerName(c.pairA[0])} / ${getPlayerName(c.pairA[1])}</span>
+                        <span class="text-xs text-rose-500 font-extrabold">VS</span>
+                        <span class="text-slate-200">${getPlayerName(c.pairB[0])} / ${getPlayerName(c.pairB[1])}</span>
+                    </div>
+                    <div class="bg-slate-900/80 p-2 rounded-xl text-center text-slate-300 text-[11px]">
+                        🎁 <strong>Apuesta:</strong> ${c.stake}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderTournaments() {
+            const container = document.getElementById('tournaments-list');
+            container.innerHTML = '';
+            (appData.tournaments || []).forEach(t => {
+                const card = document.createElement('div');
+                card.className = "bg-slate-800 border border-slate-700 rounded-2xl p-4 shadow-xl space-y-2 text-xs";
+                card.innerHTML = `
+                    <div class="flex justify-between items-center border-b border-slate-700 pb-2">
+                        <h4 class="font-bold text-emerald-400">${t.name}</h4>
+                        <span class="bg-amber-900/60 text-amber-300 px-2 py-0.5 rounded-full text-[10px]">${t.format}</span>
+                    </div>
+                    <p class="text-slate-300">Estado: <strong>${t.status}</strong></p>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function saveMatch(e) {
+            e.preventDefault();
+            const p1a = document.getElementById('match-p1-a').value;
+            const p2a = document.getElementById('match-p2-a').value;
+            const p1b = document.getElementById('match-p1-b').value;
+            const p2b = document.getElementById('match-p2-b').value;
+
+            const s1a = parseInt(document.getElementById('set1-a').value)||0;
+            const s1b = parseInt(document.getElementById('set1-b').value)||0;
+            const s2a = parseInt(document.getElementById('set2-a').value)||0;
+            const s2b = parseInt(document.getElementById('set2-b').value)||0;
+            const s3a = parseInt(document.getElementById('set3-a').value)||0;
+            const s3b = parseInt(document.getElementById('set3-b').value)||0;
+
+            let setsA = 0, setsB = 0;
+            if(s1a > s1b) setsA++; else setsB++;
+            if(s2a > s2b) setsA++; else setsB++;
+            if(s3a > 0 || s3b > 0) { if(s3a > s3b) setsA++; else setsB++; }
+
+            const winner = setsA > setsB ? 'A' : 'B';
+            const setsArray = [[s1a, s1b], [s2a, s2b]];
+            if(s3a > 0 || s3b > 0) setsArray.push([s3a, s3b]);
+
+            if(!appData.matches) appData.matches = [];
+            appData.matches.push({
+                id: 'm_' + Date.now(),
+                pairA: [p1a, p2a],
+                pairB: [p1b, p2b],
+                sets: setsArray,
+                winner: winner,
+                jornada: appData.jornadaActual,
+                date: new Date().toLocaleDateString()
+            });
+
+            syncDataToFirebase();
+            closeNewMatchModal();
+        }
+
+        function saveChallenge(e) {
+            e.preventDefault();
+            if(!appData.challenges) appData.challenges = [];
+            appData.challenges.push({
+                id: 'c_' + Date.now(),
+                pairA: [document.getElementById('ch-p1-a').value, document.getElementById('ch-p2-a').value],
+                pairB: [document.getElementById('ch-p1-b').value, document.getElementById('ch-p2-b').value],
+                stake: document.getElementById('ch-stake').value,
+                status: 'Pendiente'
+            });
+            syncDataToFirebase();
+            closeChallengeModal();
+        }
+
+        function saveTournament(e) {
+            e.preventDefault();
+            if(!appData.tournaments) appData.tournaments = [];
+            appData.tournaments.push({
+                id: 't_' + Date.now(),
+                name: document.getElementById('tour-name').value,
+                format: document.getElementById('tour-format').value,
+                status: 'En curso'
+            });
+            syncDataToFirebase();
+            closeTournamentModal();
+        }
+
+        function savePlayer(e) {
+            e.preventDefault();
+            const name = document.getElementById('player-name').value;
+            appData.players.push({ id: 'p_' + Date.now(), name: name, avatar: '🎾', racket: '', reward: '', bio: '' });
+            syncDataToFirebase();
+            closeNewPlayerModal();
+        }
+
+        function saveConfig() {
+            appData.maxJornadas = parseInt(document.getElementById('cfg-max-rounds').value) || 10;
+            appData.recompensaGanador = document.getElementById('cfg-reward-winner').value;
+            appData.castigoUltimo = document.getElementById('cfg-reward-loser').value;
+            syncDataToFirebase();
+            closeConfigModal();
+        }
+
+        // CONTROL DE MODALES
+        window.openCustomModal = () => document.getElementById('modal-custom').classList.remove('hidden');
+        window.closeCustomModal = () => document.getElementById('modal-custom').classList.add('hidden');
+        window.openConfigModal = () => {
+            document.getElementById('cfg-max-rounds').value = appData.maxJornadas;
+            document.getElementById('cfg-reward-winner').value = appData.recompensaGanador || '';
+            document.getElementById('cfg-reward-loser').value = appData.castigoUltimo || '';
+            document.getElementById('modal-config').classList.remove('hidden');
+        };
+        window.closeConfigModal = () => document.getElementById('modal-config').classList.add('hidden');
+        window.openNewMatchModal = () => {
+            const selects = ['match-p1-a', 'match-p2-a', 'match-p1-b', 'match-p2-b'];
+            selects.forEach(sId => {
+                const sel = document.getElementById(sId);
+                sel.innerHTML = '';
+                appData.players.forEach(p => sel.add(new Option(p.name, p.id)));
+            });
+            document.getElementById('modal-match').classList.remove('hidden');
+        };
+        window.closeNewMatchModal = () => document.getElementById('modal-match').classList.add('hidden');
+        window.openChallengeModal = () => {
+            const selects = ['ch-p1-a', 'ch-p2-a', 'ch-p1-b', 'ch-p2-b'];
+            selects.forEach(sId => {
+                const sel = document.getElementById(sId);
+                sel.innerHTML = '';
+                appData.players.forEach(p => sel.add(new Option(p.name, p.id)));
+            });
+            document.getElementById('modal-challenge').classList.remove('hidden');
+        };
+        window.closeChallengeModal = () => document.getElementById('modal-challenge').classList.add('hidden');
+        window.openTournamentModal = () => document.getElementById('modal-tournament').classList.remove('hidden');
+        window.closeTournamentModal = () => document.getElementById('modal-tournament').classList.add('hidden');
+        window.openNewPlayerModal = () => document.getElementById('modal-player').classList.remove('hidden');
+        window.closeNewPlayerModal = () => document.getElementById('modal-player').classList.add('hidden');
+
+        window.switchTab = switchTab;
+        window.switchStandingsMode = switchStandingsMode;
+        window.advanceRound = advanceRound;
+        window.saveMatch = saveMatch;
+        window.saveTournament = saveTournament;
+        window.savePlayer = savePlayer;
+        window.saveConfig = saveConfig;
+        window.runH2HAnalysis = runH2HAnalysis;
+        window.changeTheme = changeTheme;
+        window.saveChallenge = saveChallenge;
+        window.openEditPlayerModal = openEditPlayerModal;
+        window.closeEditPlayerModal = closeEditPlayerModal;
+        window.savePlayerProfile = savePlayerProfile;
+        window.triggerRoulette = triggerRoulette;
+        window.closeRouletteModal = closeRouletteModal;
+        window.spinRoulette = spinRoulette;
+    </script>
+</body>
+</html>
